@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1530">
+<title>Spendly</title>
+<style>
+  :root{--bg:#eef1f8;--card:#fff;--ink:#0f1a36;--muted:#6a7595;--line:#e5e9f4;--brand:#4f46e5;--danger:#dc2626}
+  @media (prefers-color-scheme:dark){:root{--bg:#0a1022;--card:#121b36;--ink:#eef1ff;--muted:#8d98ba;--line:#202b4d;--brand:#818cf8}}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);padding-bottom:96px}
+  .wrap{max-width:480px;margin:0 auto}
+  .hero{background:linear-gradient(135deg,#1e1b4b,#4338ca 55%,#6366f1);color:#fff;padding:20px 18px 64px;border-radius:0 0 28px 28px}
+  .top{display:flex;justify-content:space-between;align-items:center}
+  .brand{font-weight:800;font-size:18px;letter-spacing:.2px}
+  .mnav{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.14);border-radius:999px;padding:4px}
+  .mnav button{background:none;border:none;color:#fff;font-size:16px;width:28px;height:28px;cursor:pointer;border-radius:50%}
+  .mnav span{font-size:13px;min-width:92px;text-align:center}
+  .lbl{margin-top:22px;font-size:13px;opacity:.8}
+  .big{font-size:38px;font-weight:800;margin-top:2px}
+  .bud{margin-top:14px;font-size:13px;display:flex;justify-content:space-between;opacity:.9}
+  .pbar{height:8px;border-radius:6px;background:rgba(255,255,255,.22);margin-top:6px;overflow:hidden}
+  .pbar i{display:block;height:100%;background:#a5f3a3;border-radius:6px;transition:width .4s}
+  .pbar.over i{background:#fca5a5}
+  .setb{background:none;border:none;color:#fff;text-decoration:underline;font:inherit;font-size:13px;cursor:pointer;padding:0}
+  .pull{margin:-40px 14px 0}
+  .card{background:var(--card);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 6px 24px rgba(15,26,54,.08)}
+  h2{font-size:15px;margin:0 0 12px}
+  .donutwrap{display:flex;align-items:center;gap:16px}
+  .donut{position:relative;width:150px;height:150px;flex:none}
+  .donut svg{transform:rotate(-90deg)}
+  .donut .c{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+  .donut .c b{font-size:16px;display:block}
+  .donut .c small{color:var(--muted);font-size:11px}
+  .legend{flex:1;min-width:0}
+  .lg{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0}
+  .lg i{width:10px;height:10px;border-radius:50%;flex:none}
+  .lg span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lg em{font-style:normal;color:var(--muted)}
+  .day{font-size:12px;color:var(--muted);margin:14px 0 4px;text-transform:uppercase;letter-spacing:.5px}
+  .tx{display:flex;align-items:center;gap:12px;padding:9px 0}
+  .ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:19px;flex:none}
+  .tx .m{flex:1;min-width:0}
+  .tx .m b{display:block;font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tx .m small{color:var(--muted);font-size:12px}
+  .tx .a{font-weight:700;font-size:14px}
+  .tx .d{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:4px}
+  .empty{text-align:center;color:var(--muted);padding:22px 0;font-size:14px}
+  .fab{position:fixed;right:max(18px,calc(50% - 222px));bottom:22px;width:58px;height:58px;border-radius:50%;border:none;background:var(--brand);color:#fff;font-size:30px;box-shadow:0 8px 22px rgba(79,70,229,.5);cursor:pointer;z-index:5}
+  .ov{position:fixed;inset:0;background:rgba(5,10,25,.55);display:none;align-items:flex-end;justify-content:center;z-index:10}
+  .ov.on{display:flex}
+  .sheet{background:var(--card);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:18px 18px 24px}
+  .sheet h3{margin:0 0 12px;font-size:17px}
+  .amt{width:100%;font-size:34px;font-weight:800;border:none;border-bottom:2px solid var(--line);background:none;color:var(--ink);padding:6px 0;outline:none}
+  .amt:focus{border-color:var(--brand)}
+  .chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
+  .chip{border:2px solid transparent;background:var(--bg);color:var(--ink);border-radius:14px;padding:9px 2px;font-size:11px;cursor:pointer;display:grid;gap:3px;justify-items:center}
+  .chip span{font-size:20px}
+  .chip.sel{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 14%,var(--card))}
+  .f{display:flex;gap:8px;margin-bottom:12px}
+  .f input{flex:1;min-width:0;font:inherit;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+  .save{width:100%;padding:14px;border:none;border-radius:14px;background:var(--brand);color:#fff;font:inherit;font-weight:700;font-size:16px;cursor:pointer}
+  .cancel{width:100%;padding:10px;border:none;background:none;color:var(--muted);font:inherit;cursor:pointer;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="top">
+      <div class="brand">💸 Spendly</div>
+      <div class="mnav">
+        <button id="prev" aria-label="Previous month">‹</button>
+        <span id="mlabel"></span>
+        <button id="next" aria-label="Next month">›</button>
+      </div>
+    </div>
+    <div class="lbl">Spent this month</div>
+    <div class="big" id="total">₹0</div>
+    <div class="bud"><span id="budtxt">No budget set</span><button class="setb" id="setb">Set budget</button></div>
+    <div class="pbar" id="pbar"><i style="width:0%"></i></div>
+  </div>
+
+  <div class="pull">
+    <div class="card" id="chartCard">
+      <h2>Where it went</h2>
+      <div class="donutwrap">
+        <div class="donut">
+          <svg width="150" height="150" viewBox="0 0 180 180" id="svg"></svg>
+          <div class="c"><div><b id="cnt">0</b><small>entries</small></div></div>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Transactions</h2>
+      <div id="list"></div>
+    </div>
+  </div>
+</div>
+
+<button class="fab" id="fab" aria-label="Add expense">+</button>
+
+<div class="ov" id="ov">
+  <div class="sheet">
+    <h3>New expense</h3>
+    <input class="amt" id="amount" type="number" inputmode="decimal" placeholder="₹ 0">
+    <div class="chips" id="chips"></div>
+    <div class="f">
+      <input id="note" placeholder="Note (optional)" maxlength="60">
+      <input id="date" type="date" style="flex:none;width:150px">
+    </div>
+    <button class="save" id="save">Save expense</button>
+    <button class="cancel" id="cancel">Cancel</button>
+  </div>
+</div>
+
+<script>
+const KEY = "spendly-v2";
+const CATS = [
+  {n:"Food",i:"🍔",c:"#f97316"},{n:"Travel",i:"🚕",c:"#0ea5e9"},{n:"Groceries",i:"🛒",c:"#22c55e"},{n:"Bills",i:"💡",c:"#eab308"},
+  {n:"Shopping",i:"🛍️",c:"#ec4899"},{n:"Fun",i:"🎬",c:"#8b5cf6"},{n:"Health",i:"💊",c:"#14b8a6"},{n:"Other",i:"✨",c:"#64748b"}
+];
+const $ = id => document.getElementById(id);
+const cat = n => CATS.find(c => c.n === n) || CATS[7];
+const today = () => { const d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const fmt = n => "₹" + Number(n).toLocaleString("en-IN", {maximumFractionDigits:0});
+const esc = s => (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function load(){ try { const v = JSON.parse(localStorage.getItem(KEY)); if (v && Array.isArray(v.tx)) return v; } catch(e){} return {tx:[], budget:0}; }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+
+let S = load();
+let ym = today().slice(0,7);
+let selCat = "Food";
+
+function shift(d){
+  let [y,m] = ym.split("-").map(Number); m += d;
+  if (m < 1){ m = 12; y--; } if (m > 12){ m = 1; y++; }
+  ym = y + "-" + String(m).padStart(2,"0"); render();
+}
+
+function render(){
+  const [y,m] = ym.split("-").map(Number);
+  $("mlabel").textContent = new Date(y,m-1,1).toLocaleDateString("en-IN",{month:"long",year:"numeric"});
+  const items = S.tx.filter(t => t.date.startsWith(ym)).sort((a,b) => b.date.localeCompare(a.date) || b.id - a.id);
+  const total = items.reduce((s,t) => s + t.amount, 0);
+  $("total").textContent = fmt(total);
+  $("cnt").textContent = items.length;
+
+  const pb = $("pbar");
+  if (S.budget > 0){
+    const p = total / S.budget * 100;
+    pb.firstElementChild.style.width = Math.min(p,100) + "%";
+    pb.classList.toggle("over", p > 100);
+    $("budtxt").textContent = p > 100 ? `Over budget by ${fmt(total - S.budget)}` : `${fmt(S.budget - total)} left of ${fmt(S.budget)}`;
+    $("setb").textContent = "Edit";
+  } else {
+    pb.firstElementChild.style.width = "0%"; pb.classList.remove("over");
+    $("budtxt").textContent = "No budget set"; $("setb").textContent = "Set budget";
+  }
+
+  // donut
+  const by = {}; items.forEach(t => by[t.cat] = (by[t.cat]||0) + t.amount);
+  const parts = Object.entries(by).sort((a,b) => b[1]-a[1]);
+  const R = 70, C = 2*Math.PI*R; let off = 0, svg = `<circle cx="90" cy="90" r="${R}" fill="none" stroke="var(--line)" stroke-width="22"/>`;
+  parts.forEach(([n,v]) => {
+    const len = total ? v/total*C : 0;
+    svg += `<circle cx="90" cy="90" r="${R}" fill="none" stroke="${cat(n).c}" stroke-width="22" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}"/>`;
+    off += len;
+  });
+  $("svg").innerHTML = svg;
+  $("legend").innerHTML = parts.length ? parts.slice(0,5).map(([n,v]) =>
+    `<div class="lg"><i style="background:${cat(n).c}"></i><span>${cat(n).i} ${n}</span><em>${Math.round(v/total*100)}%</em></div>`).join("")
+    : `<div class="muted" style="color:var(--muted);font-size:13px">No spending yet</div>`;
+
+  // list grouped by day
+  let html = "", last = "";
+  items.forEach(t => {
+    if (t.date !== last){
+      last = t.date;
+      const d = new Date(t.date + "T00:00:00");
+      const label = t.date === today() ? "Today" : d.toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short"});
+      html += `<div class="day">${label}</div>`;
+    }
+    const c = cat(t.cat);
+    html += `<div class="tx"><div class="ico" style="background:${c.c}22">${c.i}</div>
+      <div class="m"><b>${esc(t.note) || c.n}</b><small>${c.n}</small></div>
+      <div class="a">−${fmt(t.amount)}</div>
+      <button class="d" data-id="${t.id}" aria-label="Delete">✕</button></div>`;
+  });
+  $("list").innerHTML = html || `<div class="empty">No transactions this month.<br>Tap + to add one.</div>`;
+}
+
+function buildChips(){
+  $("chips").innerHTML = CATS.map(c => `<button type="button" class="chip ${c.n===selCat?"sel":""}" data-c="${c.n}"><span>${c.i}</span>${c.n}</button>`).join("");
+}
+function openSheet(){ $("date").value = today(); selCat = "Food"; buildChips(); $("ov").classList.add("on"); setTimeout(() => $("amount").focus(), 50); }
+function closeSheet(){ $("ov").classList.remove("on"); $("amount").value = ""; $("note").value = ""; }
+
+$("fab").onclick = openSheet;
+$("cancel").onclick = closeSheet;
+$("ov").onclick = e => { if (e.target === $("ov")) closeSheet(); };
+$("chips").onclick = e => { const b = e.target.closest("[data-c]"); if (!b) return; selCat = b.dataset.c; buildChips(); };
+$("save").onclick = () => {
+  const amount = parseFloat($("amount").value);
+  if (!(amount > 0)){ $("amount").focus(); return; }
+  const date = $("date").value || today();
+  S.tx.push({id:Date.now(), amount, cat:selCat, note:$("note").value.trim(), date});
+  ym = date.slice(0,7); save(); closeSheet(); render();
+};
+$("list").onclick = e => { const id = e.target.dataset.id; if (!id) return; S.tx = S.tx.filter(t => String(t.id) !== id); save(); render(); };
+$("prev").onclick = () => shift(-1);
+$("next").onclick = () => shift(1);
+$("setb").onclick = () => {
+  const v = prompt("Monthly budget in ₹ (0 to remove):", S.budget || "");
+  if (v === null) return;
+  const n = parseFloat(v); S.budget = n > 0 ? n : 0; save(); render();
+};
+
+render();
+</script>
+</body>
+</html>

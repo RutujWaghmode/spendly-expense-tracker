@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f766e">
+<title>My Expenses</title>
+<style>
+  :root{--bg:#f4f7f6;--card:#fff;--ink:#12201f;--muted:#5b6b69;--brand:#0f766e;--line:#e2e9e7;--danger:#b42318}
+  @media (prefers-color-scheme:dark){:root{--bg:#0c1413;--card:#14201e;--ink:#e8f1ef;--muted:#93a7a3;--line:#243532;--brand:#2dd4bf}}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:520px;margin:0 auto;padding:16px}
+  h1{font-size:22px;margin:8px 0 14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+  .total{font-size:32px;font-weight:700;color:var(--brand)}
+  .muted{color:var(--muted);font-size:13px}
+  .row{display:flex;gap:8px;margin-bottom:8px}
+  input,select,button{font:inherit;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);width:100%}
+  button.primary{background:var(--brand);color:#fff;border:none;font-weight:600;cursor:pointer}
+  button.ghost{width:auto;cursor:pointer;padding:6px 10px;font-size:13px}
+  .item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+  .item:last-child{border-bottom:none}
+  .amt{font-weight:600}
+  .del{color:var(--danger);background:none;border:none;width:auto;cursor:pointer;padding:4px 8px}
+  .bar{height:8px;border-radius:6px;background:var(--line);overflow:hidden;margin:4px 0 10px}
+  .bar>i{display:block;height:100%;background:var(--brand)}
+  .cat{display:flex;justify-content:space-between;font-size:14px}
+  .head{display:flex;justify-content:space-between;align-items:center}
+  .empty{text-align:center;padding:18px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>💰 My Expenses</h1>
+
+  <div class="card">
+    <div class="head">
+      <div class="muted">Month</div>
+      <input type="month" id="month" style="width:auto;padding:6px 10px">
+    </div>
+    <div class="total" id="total">₹0</div>
+    <div class="muted" id="count">0 entries</div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <input id="amount" type="number" inputmode="decimal" placeholder="Amount (₹)">
+      <select id="category">
+        <option>Food</option><option>Travel</option><option>Groceries</option>
+        <option>Bills</option><option>Shopping</option><option>Entertainment</option>
+        <option>Health</option><option>Other</option>
+      </select>
+    </div>
+    <div class="row">
+      <input id="note" placeholder="What did you buy? (optional)">
+      <input id="date" type="date">
+    </div>
+    <button class="primary" id="add">Add expense</button>
+  </div>
+
+  <div class="card" id="summaryCard">
+    <div class="muted" style="margin-bottom:8px">By category</div>
+    <div id="summary"></div>
+  </div>
+
+  <div class="card">
+    <div class="head" style="margin-bottom:6px">
+      <div class="muted">Entries</div>
+      <button class="ghost" id="export">Download CSV</button>
+    </div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<script>
+const KEY = "kharch-v1";
+const $ = id => document.getElementById(id);
+const today = () => new Date().toISOString().slice(0,10);
+const fmt = n => "₹" + Number(n).toLocaleString("en-IN", {maximumFractionDigits:2});
+
+function load(){ try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch(e){ return []; } }
+function save(d){ try { localStorage.setItem(KEY, JSON.stringify(d)); } catch(e){} }
+
+let data = load();
+$("date").value = today();
+$("month").value = today().slice(0,7);
+
+function render(){
+  const m = $("month").value;
+  const items = data.filter(x => x.date.startsWith(m)).sort((a,b) => b.date.localeCompare(a.date) || b.id - a.id);
+  const total = items.reduce((s,x) => s + x.amount, 0);
+  $("total").textContent = fmt(total);
+  $("count").textContent = items.length + (items.length === 1 ? " entry" : " entries");
+
+  const byCat = {};
+  items.forEach(x => byCat[x.category] = (byCat[x.category] || 0) + x.amount);
+  const cats = Object.entries(byCat).sort((a,b) => b[1] - a[1]);
+  $("summaryCard").style.display = cats.length ? "" : "none";
+  $("summary").innerHTML = cats.map(([c,v]) =>
+    `<div class="cat"><span>${c}</span><span>${fmt(v)}</span></div>
+     <div class="bar"><i style="width:${total ? (v/total*100) : 0}%"></i></div>`).join("");
+
+  $("list").innerHTML = items.length ? items.map(x =>
+    `<div class="item">
+       <div><div>${esc(x.note) || x.category}</div>
+       <div class="muted">${x.category} · ${x.date}</div></div>
+       <div><span class="amt">${fmt(x.amount)}</span>
+       <button class="del" data-id="${x.id}" aria-label="Delete">✕</button></div>
+     </div>`).join("") : `<div class="empty">No expenses this month yet</div>`;
+}
+
+function esc(s){ return (s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+$("add").onclick = () => {
+  const amount = parseFloat($("amount").value);
+  if (!(amount > 0)) { $("amount").focus(); return; }
+  data.push({ id: Date.now(), amount, category: $("category").value, note: $("note").value.trim(), date: $("date").value || today() });
+  save(data);
+  $("amount").value = ""; $("note").value = "";
+  $("month").value = (data[data.length-1].date).slice(0,7);
+  render();
+};
+
+$("list").onclick = e => {
+  const id = e.target.dataset.id;
+  if (!id) return;
+  data = data.filter(x => String(x.id) !== id);
+  save(data); render();
+};
+
+$("month").onchange = render;
+
+$("export").onclick = () => {
+  const rows = [["Date","Category","Note","Amount"]].concat(
+    data.map(x => [x.date, x.category, '"' + (x.note || "").replace(/"/g,'""') + '"', x.amount]));
+  const blob = new Blob(["\ufeff" + rows.map(r => r.join(",")).join("\n")], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "expenses.csv"; a.click();
+};
+
+render();
+</script>
+</body>
+</html>
